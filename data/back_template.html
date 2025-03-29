@@ -3,9 +3,10 @@
 <hr id=answer>
 
 <center>
-    <img src="{{ImageUrl}}" alt="Image" style="max-width: 100%; height: auto;">
-    <h2>{{KnownWord}}</h2>
-    <p style="font-size: 1.2em;">{{Sentence1}}</p>
-    {{#Sentence2}}<p style="font-size: 1.2em;">{{Sentence2}}</p>{{/Sentence2}}
-    {{#Sentence3}}<p style="font-size: 1.2em;">{{Sentence3}}</p>{{/Sentence3}}
+	<h3>{{Translation}}</h3>
+	<p style="font-size: 1em;">{{Gloss}}</p>
+	<div>
+	<p style="font-size: 1.2em; font-family: nanumgothic;">{{Sentence}} {{SentenceAudio}}</p>
+	</div>
+	<img src="{{ImageUrl}}" alt="Image" style="max-width: 100%; max-height: 15em;">
 </center>

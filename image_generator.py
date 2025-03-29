@@ -1,5 +1,5 @@
 import requests
-from models import VocabNote, VocabNoteFields
+from anki_models import VocabNote, VocabNoteFields
 
 WIKIMEDIA_API_URL = "https://commons.wikimedia.org/w/api.php"
 
@@ -10,11 +10,20 @@ MAX_IMAGE_WIDTH = "500px"
 IMAGE_SEARCH_LIMIT = 15
 IMAGE_SELECTION_LIMIT = 3
 
-INTERACTIVE_IMAGE_SELECTION = True
+INTERACTIVE_IMAGE_SELECTION = True  # FIXME: produce_images() should produce images, and the main should worry about interactive or not
 # FIXME: if interactive, I want to add notes one at a time, if false I want to bulk add notes instead
+# The interactive feature would REALLY benefit from a GUI
+
+# TODO: Refactor all this code to be independent of the exact API/method used
+# TODO: Add logic for icrawler (probably best choice)
+# TODO: Add logic for SerpAPI
+# TODO: Add logic for DeepAI
+# TODO: Add logic for Giphy
+
+# TODO: Refactor this to be more like audio_generator: modular, only does what it needs to
 
 # NOTE: The goal of this whole file/class should simply be: Given a word or prompt, find/generate images as effectively as possible
-# Effectively meaning accurate (good pictures), fast, and ample (more than one image), and ideally free
+# Effectively meaning accurate (good pictures), fast, and ample (more than one image), and ideally free, for the purpose of memorizing associated concepts/words
 # DeepAI has a simple API I can use for this
 
 
@@ -22,10 +31,10 @@ def fetch_and_select_image(note: VocabNote) -> str:
     images = fetch_images(note.search_prompt)
 
     if len(images) < IMAGE_SEARCH_LIMIT/2:
-        images = fetch_images(note.fields.known_word)
+        images = fetch_images(note.fields.Vocab)
 
     if len(images) < IMAGE_SEARCH_LIMIT/2:
-        images = fetch_images(note.fields.known_word, IMAGE_SEARCH_LIMIT*2)
+        images = fetch_images(note.fields.Vocab, IMAGE_SEARCH_LIMIT*2)
 
     if INTERACTIVE_IMAGE_SELECTION:
         return pick_an_image(note, images)

@@ -1,14 +1,15 @@
 class VocabNote:
     class VocabNoteFields:
         """ Defines fields used for Anki vocab notes """
-        def __init__(self, TargetWord='', KnownWord='', Sentence1='', Sentence2='', Sentence3='', ImageUrl='', TargetAudio=''):
-            self.TargetWord = TargetWord
-            self.KnownWord = KnownWord
-            self.Sentence1 = Sentence1
-            self.Sentence2 = Sentence2
-            self.Sentence3 = Sentence3
+        def __init__(self, Vocab='', Translation='', Gloss='', Sentence='', ImageUrl='', VocabAudio1='', VocabAudio2=''):
+            self.Vocab = Vocab
+            self.Translation = Translation
+            self.Gloss = Gloss
+            self.Sentence = Sentence
             self.ImageUrl = ImageUrl
-            self.TargetAudio = TargetAudio
+            self.VocabAudio1 = VocabAudio1
+            self.VocabAudio2 = VocabAudio2
+            self.QueryPrompt = 'TODO: I could have a QueryPrompt field on the note fields, never display it but use it to search/generate images?'
 
     def __init__(self, model_name: str, target_language: str, known_language: str, fields: dict, search_prompt: str=''):
         self.model_name = model_name
@@ -17,10 +18,12 @@ class VocabNote:
         self.tags = [target_language]
         self.fields = self.VocabNoteFields()
         self.set_fields(fields)
-        self.search_prompt = search_prompt or self.fields.KnownWord
+        self.search_prompt = search_prompt or self.fields.Translation
+        # TODO: instead of having fields on VocabNote with ephemeral data, I would make actual fields for these
+        # which means I could permanently store the data for use later, if a user wants to update their existing cards
 
     def __str__(self):  # FIXME: change this to a separate method and keep default print
-        return f"{self.fields.TargetWord} ({self.fields.KnownWord})"
+        return f"{self.fields.Vocab} ({self.fields.Translation})"
     
     def set_fields(self, fields: dict):
         """ Accepts a dictionary and sets the corresponding fields """
@@ -45,13 +48,11 @@ if __name__ == "__main__":
     known_language = "english"
 
     fields = {
-        "TargetWord": "우유",
-        "KnownWord": "milk",
+        "Vocab": "우유",
+        "Translation": "milk",
         "ImageUrl": "",
-        "Sentence1": "우유가 좋아요~",
-        "Sentence2": "",
-        "Sentence3": "",
-        "TargetAudio": ""
+        "Sentence": "우유가 좋아요~",
+        "VocabAudio1": ""
     }
 
     myNote = VocabNote(model_name, target_language, known_language, fields)

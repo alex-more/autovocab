@@ -1,10 +1,9 @@
 import requests
 import json
-from models import VocabNote
+from anki_models import VocabNote
 
 ANKICONNECT_URL = "http://localhost:8765"
 
-# TODO: Make this into a class instead?
 
 # TODO: Also, why wouldn't I pass a VocabNote to fns like add_note and can_add_note?
 
@@ -96,6 +95,36 @@ def does_deck_exist(deck_name: str) -> bool:
 def does_model_exist(model_name: str) -> bool:
     return model_name in get_all_model_names()['result']
 
+def store_media_file(filename, audio_data):
+    # Define AnkiConnect API URL
+    ANKICONNECT_URL = "http://localhost:8765"
+
+    # Create payload for AnkiConnect request
+    payload = {
+        "action": "storeMediaFile",
+        "version": 6,
+        "params": {
+            "filename": filename,
+            "data": audio_data.decode("latin1")  # Convert binary to text-friendly format
+        }
+    }
+
+    # Send request to AnkiConnect
+    response = requests.post(ANKICONNECT_URL, json=payload)
+    
+    # Parse response
+    result = response.json()
+    return result.get("result", result.get("error", "Unknown error"))
+
+def get_media_dir_path():
+    payload = {
+        "action": "getMediaDirPath",
+        "version": 6
+    }
+    response = requests.post(ANKICONNECT_URL, json=payload)
+    return response.json().get('result')
+
 
 if __name__ == "__main__":
-    print(get_all_deck_names())
+    # print(get_all_deck_names())
+    print(get_media_dir_path())
