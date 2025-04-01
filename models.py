@@ -1,7 +1,23 @@
+from pydantic import BaseModel
+
+"""
+TODO: Refactor this once and for all
+
+A VocabNote should not have a defined set of fields, instead it should have a fields dict that
+is dynamically created/inferred on app startup.
+
+I should have a Default/Recommended VocabNote type
+
+VocabField should be its own abstract class and the different fields should inherit from it
+"""
+
+class VocabField:
+    pass  # TODO:
+
 class VocabNote:
     class VocabNoteFields:
         """ Defines fields used for Anki vocab notes """
-        def __init__(self, TargetWord='', KnownWord='', Sentence1='', Sentence2='', Sentence3='', ImageUrl='', TargetAudio=''):
+        def __init__(self, TargetWord='', KnownWord='', Sentence1='', Sentence2='', Sentence3='', ImageUrl='', TargetAudio='', Translation='', Gloss=''):
             self.TargetWord = TargetWord
             self.KnownWord = KnownWord
             self.Sentence1 = Sentence1
@@ -9,6 +25,8 @@ class VocabNote:
             self.Sentence3 = Sentence3
             self.ImageUrl = ImageUrl
             self.TargetAudio = TargetAudio
+            self.Translation = Translation
+            self.Gloss = Gloss
 
     def __init__(self, model_name: str, target_language: str, known_language: str, fields: dict, search_prompt: str=''):
         self.model_name = model_name
@@ -19,7 +37,7 @@ class VocabNote:
         self.set_fields(fields)
         self.search_prompt = search_prompt or self.fields.KnownWord
 
-    def __str__(self):  # FIXME: change this to a separate method and keep default print
+    def nice_print(self):
         return f"{self.fields.TargetWord} ({self.fields.KnownWord})"
     
     def set_fields(self, fields: dict):
@@ -56,6 +74,4 @@ if __name__ == "__main__":
 
     myNote = VocabNote(model_name, target_language, known_language, fields)
 
-    print(myNote)
-
-    myNote.set_fields({'Image'})
+    print(VocabNote.get_field_names())

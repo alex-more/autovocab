@@ -1,5 +1,12 @@
 import requests
-from models import VocabNote, VocabNoteFields
+from models import VocabNote
+
+"""
+NOTE: The goal of this whole file/class should simply be: Given a word or prompt, find/generate images as effectively as possible
+Effectively meaning accurate (good pictures), fast, and ample (more than one image), and ideally free
+DeepAI has a simple API I can use for this
+"""
+
 
 WIKIMEDIA_API_URL = "https://commons.wikimedia.org/w/api.php"
 
@@ -11,11 +18,6 @@ IMAGE_SEARCH_LIMIT = 15
 IMAGE_SELECTION_LIMIT = 3
 
 INTERACTIVE_IMAGE_SELECTION = True
-# FIXME: if interactive, I want to add notes one at a time, if false I want to bulk add notes instead
-
-# NOTE: The goal of this whole file/class should simply be: Given a word or prompt, find/generate images as effectively as possible
-# Effectively meaning accurate (good pictures), fast, and ample (more than one image), and ideally free
-# DeepAI has a simple API I can use for this
 
 
 def fetch_and_select_image(note: VocabNote) -> str:
@@ -92,6 +94,6 @@ def get_thumbnail_url(image_url: str) -> str:
 
 if __name__ == "__main__":
     prompt = "Metal soup ladle"
-    fields = VocabNoteFields("휴식", "ladle", "", "", "")
+    # fields = VocabNoteFields("휴식", "ladle", "", "", "")
     vocabNote = VocabNote('AutoVocab', 'korean', 'english', fields, prompt)
     url = fetch_and_select_image(vocabNote)

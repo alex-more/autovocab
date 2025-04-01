@@ -1,3 +1,0 @@
-{
-    "testWordCompletion": "I want to test your ability to generate vocab info for me. Given a list of non-english words, can you make a CSV with the following fields:\n1. the non-english word\n2. the english translation(s), but it should be short as it needs to fit in a field on a flashcard\n3. the language of the foreign word\n\nhere is an example of what the output I expect might look like:\nVocab,Translation,Language\n일,one / work / day,korean\n자주,often; frequently,korean\npalabra,word/speech,spanish\n\nyour list of words for this test is: {{VocabList}}"
-}

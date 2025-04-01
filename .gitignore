@@ -171,4 +171,5 @@ cython_debug/
 .pypirc
 
 # Other/custom
-*.personal.*
+*.personal.txt
+*.personal.md
