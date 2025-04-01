@@ -5,32 +5,26 @@ from anki_models import VocabNote
 ANKICONNECT_URL = "http://localhost:8765"
 
 
-# TODO: Also, why wouldn't I pass a VocabNote to fns like add_note and can_add_note?
-
-# TODO: add tag corresponding to note.target_language
-
-# If I used guiAddCards action I could maybe make it more user friendly?
-
-# TODO: Review https://git.sr.ht/~foosoft/anki-connect#deck-actions and improve the anki interfacing logic accordingly
-
-def add_note(deck_name: str, model_name: str, fields: dict) -> dict:
+def add_note(deck_name: str, note: VocabNote) -> dict:
     payload = {
         "action": "addNote",
         "version": 6,
         "params": {
             "note": {
                 "deckName": deck_name,
-                "modelName": model_name,
-                "fields": fields,
+                "modelName": note.model_name,
+                "fields": note.fields,
                 "tags": []
             }
         }
     }
 
+    # FIXME: should return the ID if it succeeds, or False if it fails
+
     response = requests.post(ANKICONNECT_URL, json=payload)
     return response.json()
 
-def can_add_note(deck_name: str, model_name: str, fields: dict):
+def can_add_note(deck_name: str, note: VocabNote) -> bool:
     payload = {
         "action": "canAddNotesWithErrorDetail",
         "version": 6,
@@ -38,15 +32,17 @@ def can_add_note(deck_name: str, model_name: str, fields: dict):
             "notes": [
                 {
                     "deckName": deck_name,
-                    "modelName": model_name,
-                    "fields": fields,
+                    "modelName": note.model_name,
+                    "fields": note.fields,
                     "tags": ['Korean']
                 }
             ]
         }
     }
     response = requests.post(ANKICONNECT_URL, json=payload)
-    return response.json()
+    return all([result['canAdd'] == True for result in response.json()['result']])
+
+
 
 def create_model(model_name: str, fields: list, card_templates: list):
     model = {

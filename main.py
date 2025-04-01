@@ -1,94 +1,98 @@
-import sys
 import csv
 import uuid
+import argparse
+
 import anki_interface as anki
 import ai_interface as ai
-from image_generator import fetch_and_select_image
+import image_generator as img_gen
 from anki_models import VocabNote
 
-# TODO: 2 step approach, first step is asking AI to generate a lemma/vocab list (either from a theme, or parsing text)
-    # > generate_vocab(prompt) or extract_vocab(text)
-    # 2nd step is to "enrich/hydrate" the list with Translation, Gloss, ExampleSentence, QueryPrompt (if image generation is activated)
-    # this could optionally be done through AI, or through dictionary API calls
-    # dictionary API calls require a language to be "officially supported"
 
-# TODO: Figure out an efficient flow for batch note creation VS single note creation
-    # > Answer: It's simple, I should just keep a list of VocabNotes in memory and batch create them once every step has been run
-    # > Or alternatively, never batch create and only add one at a time, since the bottleneck will be TTS and image gen anyway
+"""
+The main file for AutoVocab
 
-# TODO: Test Fast Word Query addon
-
-# TODO: Test AnkiBrain
-
-# TODO: Test Kimchi Reader
-
-# TODO: Make my script prompt ChatGPT directly, in a way that avoids generating words already in the deck
-
-# Before going into any of the following TODOs, I should use my script on a daily basis, and experiment with existing
-# Anki addons that do similar things. Also experiment with existing browser extensions.
-
-# TODO: Somehow improve image selection, it still feels very crude. Investigate other APIs, possibly even AI image generation.
-    # NOTE: Just like how AwesomeTTS lets users pick which AI tts service to use, 
-        # I could let users pick which image generation model to use
-
-# TODO: Investigate making this an actual Anki addon or browser extension
+Try to only keep the entry points of the program in here, and keep the core logic elsewhere
+"""
 
 TARGET_LANG = "Korean"
 KNOWN_LANG = "English"
 
 DECK_NAME = f"{TARGET_LANG} AutoVocab"
-MODEL_NAME = f"{TARGET_LANG}-AutoVocab"  # FIXME: Model name should be dynamic, based on target language + AutoVocab
+MODEL_NAME = f"{TARGET_LANG}-AutoVocab"
 CARD_NAME = f"{TARGET_LANG}-AutoVocab"
 
-CSV_FILE = "./data/new_words.csv"  # FIXME: Apparently, | delimiter is better for this purpose
+CSV_FILE = "data/new_words.csv"
 
 
-def add_anki_notes(filename: str):
+def generate_anki_notes_for_text(textblock: str) -> bool:
+    """ Takes a block of text and generates Anki notes accordingly """
+    pass
+
+def generate_anki_notes_by_prompt(prompt: str) -> bool:
+    """ Takes a prompt and generates Anki notes accordingly """
+    pass
+
+def generate_anki_note_for_word(word: str) -> bool:
+    """ Takes a foreign word and generates an Anki note for it """
+    vocab_fields = { 'TargetWord': word }
+    note = VocabNote(MODEL_NAME, TARGET_LANG, KNOWN_LANG, vocab_fields)
+
+    note = bulk_enrich_vocab_text_fields([note]).pop()
+    
+    note = enrich_vocab_note(note)
+
+    if anki.can_add_note(DECK_NAME, note):
+        return anki.add_note(DECK_NAME, note.model_name, note.fields)
+    else:
+        return False
+
+def bulk_enrich_vocab_text_fields(notes: list[VocabNote]) -> list[VocabNote]:
+    """ Takes a list of VocabNotes and fills in the text fields using LLM """
+    pass
+
+def enrich_vocab_note(note: VocabNote) -> VocabNote:
+    """ Takes a VocabNote and fills in all the missing fields """
+    pass
+
+def create_anki_notes(filename: str):
     with open(filename, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         
         for row in reader:
-            if any(field not in row for field in VocabNote.REQUIRED_FIELDS):
-                print(f"WARNING: Skipping invalid row (missing required fields): {row}")
-                continue
-            
-            # FIXME: Refactor the whole main.py, I now provide a fields dict to VocabNote and it throws an error if one is invalid
+            vocab_fields = {key:row[key] for key in VocabNote.get_field_names()}
+            note = VocabNote(MODEL_NAME, TARGET_LANG, KNOWN_LANG, vocab_fields, row['SearchPrompt'])
 
-            note = VocabNote(MODEL_NAME, TARGET_LANG, KNOWN_LANG, noteFields, row['SearchPrompt'])
+            try:
+                generate_anki_note(note, generateImage=True, generateAudio=True)
+            except Exception as e:
+                print(f"ERROR: Could not generate the note for row {row} \n{e}")
 
-            can_add_response = anki.can_add_note(DECK_NAME, note.model_name, note.get_fields())
-            if all([result['canAdd'] == True for result in can_add_response['result']]):
-                image_url = fetch_and_select_image(note)
-                if not image_url:
-                    print(f"WARNING: Failed to fetch or select the image for {note}")
-                else:
-                    note.fields.image_url = image_url
-
-                add_note_response = anki.add_note(DECK_NAME, note.model_name, note.get_fields())
-                print(f"Note added: {add_note_response['result']}")
-            else:
-                print(f"\nERROR: Can't add note for {note})")
-                print(f"AnkiConnect response: {can_add_response['result'][0]['error']}\n")
-
-# NOTE: Instead of taking a note, this function could hypothetically take a single word.
-# That would be great for making a single Anki note at a time, but inefficient for bulk note creation
-# Because I could have ChatGPT add every text field in bulk at the start for the whole list of words
-# I could force ChatGPT for batch note creation, and allow other methods for getting translations and gloss for individual words
 def generate_anki_note(note: VocabNote, generateImage: bool, generateAudio: bool) -> bool:
     """ Takes a VocabNote, generates the missing data, and adds it to your Anki deck """
-    pass
+    if anki.can_add_note(DECK_NAME, note):
+        image_url = img_gen.fetch_and_select_image(note)
+        if not image_url:
+            print(f"WARNING: Failed to fetch or select the image for {note}")
+        else:
+            note.fields.ImageUrl = image_url
+
+        add_note_response = anki.add_note(DECK_NAME, note.model_name, note.get_fields())
+        print(f"Note added: {add_note_response['result']}")
+        return True
+    else:
+        print(f"\nERROR: Can't add note for {note})")
+        return False
 
 def validate_collection():
     """This ensures the user has the required deck and model in their Anki collection"""
-    random_strings = [str(uuid.uuid4()) for _ in range(6)]
-    testFields = VocabNoteFields(random_strings[0], random_strings[1], random_strings[2], random_strings[3], random_strings[4], random_strings[5])
+    testFields = {key:str(uuid.uuid4()) for key in VocabNote.get_field_names()}
     testNote = VocabNote(MODEL_NAME, TARGET_LANG, KNOWN_LANG, testFields)
     testResult = anki.can_add_note(DECK_NAME, MODEL_NAME, testNote.get_fields())
 
     isCollectionValid = all([result['canAdd'] == True for result in testResult['result']])
 
     if not isCollectionValid:
-        print('WARNING: Collection had missing objects')
+        print("WARNING: Collection had missing objects")
         setup_collection(testNote)
     else:
         print("Collection is valid")
@@ -130,6 +134,11 @@ def load_html_templates() -> dict:
     
 
 if __name__ == "__main__":
-    validate_collection()
+    parser = argparse.ArgumentParser(description = "~ Welcome to Autovocab ~")
+    parser.add_argument("filename", help="CSV file with a list of words")
+    args = parser.parse_args()
 
-    add_anki_notes(CSV_FILE)
+
+    # validate_collection()
+
+    # create_anki_notes(CSV_FILE)

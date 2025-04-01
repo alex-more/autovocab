@@ -1,15 +1,32 @@
+from pydantic import BaseModel
+
+"""
+TODO: Refactor this once and for all
+Useful fields: Translation, Gloss, ExampleSentence, QueryPrompt (if image generation is activated)
+
+A VocabNote should not have a defined set of fields, instead it should have a fields dict that
+is dynamically created/inferred on app startup.
+
+I should have a Default/Recommended VocabNote type
+
+VocabField should be its own abstract class and the different fields should inherit from it
+"""
+
+class VocabField:
+    pass  # TODO:
+
 class VocabNote:
     class VocabNoteFields:
         """ Defines fields used for Anki vocab notes """
-        def __init__(self, Vocab='', Translation='', Gloss='', Sentence='', ImageUrl='', VocabAudio1='', VocabAudio2=''):
-            self.Vocab = Vocab
+        def __init__(self, TargetWord='', Sentence1='', Sentence2='', Sentence3='', ImageUrl='', TargetAudio='', Translation='', Gloss=''):
+            self.TargetWord = TargetWord
+            self.Sentence1 = Sentence1
+            self.Sentence2 = Sentence2
+            self.Sentence3 = Sentence3
+            self.ImageUrl = ImageUrl
+            self.TargetAudio = TargetAudio
             self.Translation = Translation
             self.Gloss = Gloss
-            self.Sentence = Sentence
-            self.ImageUrl = ImageUrl
-            self.VocabAudio1 = VocabAudio1
-            self.VocabAudio2 = VocabAudio2
-            self.QueryPrompt = 'TODO: I could have a QueryPrompt field on the note fields, never display it but use it to search/generate images?'
 
     def __init__(self, model_name: str, target_language: str, known_language: str, fields: dict, search_prompt: str=''):
         self.model_name = model_name
@@ -19,11 +36,9 @@ class VocabNote:
         self.fields = self.VocabNoteFields()
         self.set_fields(fields)
         self.search_prompt = search_prompt or self.fields.Translation
-        # TODO: instead of having fields on VocabNote with ephemeral data, I would make actual fields for these
-        # which means I could permanently store the data for use later, if a user wants to update their existing cards
 
-    def __str__(self):  # FIXME: change this to a separate method and keep default print
-        return f"{self.fields.Vocab} ({self.fields.Translation})"
+    def nice_print(self):
+        return f"{self.fields.TargetWord} ({self.fields.Translation})"
     
     def set_fields(self, fields: dict):
         """ Accepts a dictionary and sets the corresponding fields """
@@ -57,6 +72,4 @@ if __name__ == "__main__":
 
     myNote = VocabNote(model_name, target_language, known_language, fields)
 
-    print(myNote)
-
-    myNote.set_fields({'Image'})
+    print(VocabNote.get_field_names())

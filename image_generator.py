@@ -1,5 +1,16 @@
 import requests
-from anki_models import VocabNote, VocabNoteFields
+from anki_models import VocabNote
+
+"""
+NOTE: The goal of this whole file/class should simply be: Given a word or prompt, find/generate images as effectively as possible
+Effectively meaning accurate (good pictures), fast, and ample (more than one image), and ideally free
+DeepAI has a simple API I can use for this
+
+# TODO: Add logic for icrawler (probably best choice)
+# TODO: Add logic for DeepAI
+# TODO: Add logic for SerpAPI
+# TODO: Add logic for Giphy
+"""
 
 WIKIMEDIA_API_URL = "https://commons.wikimedia.org/w/api.php"
 
@@ -10,21 +21,7 @@ MAX_IMAGE_WIDTH = "500px"
 IMAGE_SEARCH_LIMIT = 15
 IMAGE_SELECTION_LIMIT = 3
 
-INTERACTIVE_IMAGE_SELECTION = True  # FIXME: produce_images() should produce images, and the main should worry about interactive or not
-# FIXME: if interactive, I want to add notes one at a time, if false I want to bulk add notes instead
-# The interactive feature would REALLY benefit from a GUI
-
-# TODO: Refactor all this code to be independent of the exact API/method used
-# TODO: Add logic for icrawler (probably best choice)
-# TODO: Add logic for SerpAPI
-# TODO: Add logic for DeepAI
-# TODO: Add logic for Giphy
-
-# TODO: Refactor this to be more like audio_generator: modular, only does what it needs to
-
-# NOTE: The goal of this whole file/class should simply be: Given a word or prompt, find/generate images as effectively as possible
-# Effectively meaning accurate (good pictures), fast, and ample (more than one image), and ideally free, for the purpose of memorizing associated concepts/words
-# DeepAI has a simple API I can use for this
+INTERACTIVE_IMAGE_SELECTION = True
 
 
 def fetch_and_select_image(note: VocabNote) -> str:
@@ -101,6 +98,6 @@ def get_thumbnail_url(image_url: str) -> str:
 
 if __name__ == "__main__":
     prompt = "Metal soup ladle"
-    fields = VocabNoteFields("휴식", "ladle", "", "", "")
+    # fields = VocabNoteFields("휴식", "ladle", "", "", "")
     vocabNote = VocabNote('AutoVocab', 'korean', 'english', fields, prompt)
     url = fetch_and_select_image(vocabNote)
